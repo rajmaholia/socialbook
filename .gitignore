@@ -1,0 +1,6 @@
+.env/
+db.sqlite3
+media/
+core/__pycache__/
+core/migrations/
+social_book/__pycache__/
