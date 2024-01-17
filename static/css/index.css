@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+
+@font-face {
+    font-family: 'Pacifico', cursive;
+}
+
+.navbar-brand{
+    font-family: 'Pacifico';
+}
+
+.sb-stories span {
+    font-size: 0.7em;
+}
+.sb-stories .my-story {
+  border:none !important  
+}
+.sb-stories .rounded-circle {
+    border:2px solid  #dd3275;
+    outline-width: 0;
+}
+
+.fa-heart {
+    color:black
+}
+
+button {
+    border: transparent;
+    background-color: transparent;
+    outline:none
+}
+
+/* Add your custom styles here */
+button:focus {
+    outline: none;
+}
+
+/* Add the following CSS to your existing styles or create a new stylesheet */
+
+  .modal-dialog-scrollable {
+    height:99vh !important;
+  }
