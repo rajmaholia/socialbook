@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SocialBook</title>
     <!-- Include Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap_4.5.2.css' %}">
     <!-- Include Font Awesome -->
     <!-- Include your custom CSS if needed -->
     <!-- <link rel="stylesheet" href="{% static 'css/style.css' %}"> -->
@@ -88,21 +88,25 @@
 
 <!-- Upload post modal -->
 <!-- End upload post modal -->
-<!-- Include Bootstrap JS and Popper.js -->
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script>
-  var $j = jQuery.noConflict();
-</script>
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.1/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<!-- Include Font Awesome -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" integrity="sha512-GWzVrcGlo0TxTRvz9ttioyYJ+Wwk9Ck0G81D+eO63BaqHaJ3YZX9wuqjwgfcV/MrB2PhaVX9DkYVhbFpStnqpQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<!-- Include your custom scripts if needed -->
 
-{% block scripts %}
-  <script src="{% static 'js/index.js' %}"></script>
-{% endblock scripts %}
-    <script src="{% static 'js/post_upload.js' %}"></script>
+    <!-- Include Bootstrap JS and Popper.js -->
+  <script src="{% static 'assets/js/jquery-3.3.1.min.js' %}"></script>
+  <script>
+    var $j = jQuery.noConflict();
+  </script>
+
+  <script src="{% static 'assets/js/popper_2.10.1.js' %}"></script>
+  <script src="{% static 'assets/js/bootstrap_4.5.2.js' %}"></script>
+  <!-- Include Font Awesome -->
+  <script src="{% static 'assets/js/font-awesome-6.5.1.js' %}"></script>
+  <!-- Include your custom scripts if needed -->
+
+  <script src="{% static 'js/post_upload.js' %}"></script>
+  <script src="{% static 'js/_base.js' %}"></script>
+
+  {% block scripts %}
+     <script src="{% static 'js/index.js' %}"></script>
+  {% endblock scripts %}
 </body>
 </html>

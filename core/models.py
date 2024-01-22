@@ -23,14 +23,14 @@ class UserPost(models.Model):
     like_count = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.user.username
+        return self.caption
 
 class PostLike(models.Model):
     post = models.ForeignKey(UserPost, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.user.username
+        return f'{self.user.username}  Liked `{self.post}`'
 
 class FollowRelation(models.Model):
     follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='follower')
@@ -38,3 +38,19 @@ class FollowRelation(models.Model):
 
     def __str__(self):
         return f'{self.follower.username} follows {self.following.username}'
+    
+class Comment(models.Model):
+    post = models.ForeignKey(UserPost,related_name="comments",on_delete=models.CASCADE)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    comment_text = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f'@{self.user.username} Comments on {self.post} :  `{self.comment_text[:50]}`'
+    
+class Reply(models.Model):
+    comment = models.ForeignKey(Comment,related_name="replies",on_delete=models.CASCADE)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    reply_text = models.CharField(max_length=255)    
+
+    def __str__(self) -> str:
+        return f'@{self.user.username} Replied to @{self.comment.user}\'s Comment ({self.comment.comment_text[:30]}): `{self.reply_text[:30]}`'

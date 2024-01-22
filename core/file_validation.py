@@ -32,3 +32,19 @@ def validate_video(file):
 
     except Exception as e:
         return {'is_valid': False, 'error': str(e)}
+
+def is_image(file_path):
+    image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp']
+    # Check file extension
+    if any(file_path.lower().endswith(ext) for ext in image_extensions):
+        return True
+    # Additional checks based on file content can be added here (e.g., using Pillow library)
+    return False
+
+def is_video(file_path):
+    video_extensions = ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.webm']
+    # Check file extension
+    if any(file_path.lower().endswith(ext) for ext in video_extensions):
+        return True
+    # Additional checks based on file content can be added here
+    return False

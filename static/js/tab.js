@@ -1,5 +1,6 @@
+listMedia(document.getElementById('btnListVideos'),'videos');
 
-function listMedia(evt, mediaType) {
+function listMedia(currentTarget ,mediaType) {
     // Declare all variables
     var i, tabcontent, tablinks;
   
@@ -17,5 +18,14 @@ function listMedia(evt, mediaType) {
   
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(mediaType).style.display = "block";
-    evt.currentTarget.className += " active";
+    currentTarget.className += " active";
   }
+
+  document.getElementById("tab").addEventListener('click',function(e){
+    if (e.target.id=='btnListVideos'){
+      listMedia(e.target,'videos')
+    } else if(e.target.id == 'btnListImages') {
+      listMedia(e.target,"images")
+    }
+  },true);
+
