@@ -1,25 +1,178 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!--  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet"> -->
-    <title>User Profile</title>
+    <!-- Include necessary stylesheets and scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <!-- Include other scripts as needed -->
+    <style>
+        /* styles.css */
+
+.reel-container {
+    position: relative;
+    max-width: 420px; /* Adjust as needed */
+    margin: auto;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 10px;
+    box-sizing: border-box;
+    display: none; /* Initially hide overlay */
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.caption {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+    </style>
 </head>
-<style>
-    div:before{
-        content:"\f176"
-    }
-</style>
 <body>
-<div>
-    &e534;
-</div>
-<!-- Bootstrap and jQuery Scripts 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
--->
+    <div id="reels-container">
+        <!-- Reels will be dynamically added here using JavaScript -->
+    </div>
+
+    <!-- Include other necessary HTML elements as needed -->
+
+    <script>
+        // scripts.js
+$(document).ready(function() {
+    // Fetch reel data from your API (replace with your API endpoint)
+    $.ajax({
+        url: '/get_reels/',
+        method: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            // Iterate through the data and create reels
+            data.reels.forEach(function(reel) {
+                createReel(reel.url, {'userImage':reel.creator_img,'username':reel.creator}, reel.caption);
+            });
+        },
+        error: function(error) {
+            console.error('Error fetching reel data:', error);
+        }
+    });
+
+    // Function to create a dynamic video element and update content
+    function createReel(videoSrc, userInfo, captionText) {
+        const reelsContainer = $('#reels-container');
+
+        // Create reel container
+        const reelContainer = $('<div class="reel-container"></div>');
+
+        // Create video element
+        const video = $('<video class="reel-video" controls muted></video>');
+        video.attr('src', videoSrc);
+        video.controls = false ;
+        // Create overlay elements
+        const overlay = $('<div class="overlay"></div>');
+        const userInfoElement = $('<div class="user-info"></div>');
+        const userImage = $('<img class="user-image" alt="User Image">');
+        userImage.attr('src', userInfo.userImage);
+        const username = $('<span class="username"></span>').text(userInfo.username);
+        const caption = $('<div class="caption"></div>').text(captionText);
+
+        // Append elements to the overlay
+        userInfoElement.append(userImage, username);
+        overlay.append(userInfoElement, caption);
+
+        // Append video and overlay to the reel container
+        reelContainer.append(video, overlay);
+
+        // Append the reel container to the reels container
+        reelsContainer.append(reelContainer);
+
+        // Add event listeners for various interactions
+        addEventListeners(video);
+    }
+
+    // Function to add event listeners to video elements
+    function addEventListeners(video) {
+        // Add event listener for tap to play/pause
+        video.on('tap', function() {
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        });
+
+        // Add event listener for double tap to like
+        video.on('dblclick', function() {
+            // Use AJAX to send a request to like-post endpoint
+            const postId = 2;
+            $.ajax({
+                url: 'like-post',
+                method: 'GET',
+                data: { post_id: postId },
+                success: function(response) {
+                    console.log('Post Liked:', response);
+                },
+                error: function(error) {
+                    console.error('Error liking post:', error);
+                }
+            });
+        });
+
+        // Add event listener for swipe-up to navigate to next reel
+        video.on('swipeup', function() {
+            // Use JavaScript to navigate to the next reel
+            navigateToNextReel();
+        });
+
+        // Add event listener for full-screen view
+        video.on('expand', function() {
+            // Use JavaScript to toggle the video to full-screen mode
+            toggleFullScreen(video);
+        });
+    }
+
+    // Function to navigate to the next reel
+    function navigateToNextReel() {
+        // Implement logic to navigate to the next reel
+    }
+
+    // Function to toggle full-screen mode
+    function toggleFullScreen(element) {
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+        }
+    }
+});
+
+    </script>
+    <!-- Include other scripts as needed -->
 </body>
 </html>

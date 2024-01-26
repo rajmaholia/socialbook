@@ -13,10 +13,10 @@
       const postId = target.getAttribute('data-pid'); // Replace this with the actual post ID
       PostManager.getData(postId)
         .then(response => {
+          PostManager.pid = postId;
+
           // Use the response data as needed
-          $j('.btn-like').attr('data-pid',target.getAttribute('data-pid'));
-          $j('#btnPostComment').attr('data-pid',target.getAttribute('data-pid'));
-         
+          
           let like_text =(response.like_count == 1)? "like":"likes";
          $j('#noOfLikes').text(`${response.like_count}`);
          $j('#likeText').text(like_text);
@@ -25,12 +25,11 @@
          $j('#captionText').text(response.caption);
          
          if(response.liked_by_me){
-            $j('.btn-like').addClass("liked");   
-            $j('.btn-like').html(`<i class="fas fa-heart" style="color:red"></i>`);
+            $j('#btn-like').addClass("liked");   
+            $j('#btn-like').html(`<i class="fas fa-heart" style="color:red"></i>`);
           } else {
-            $j('.btn-like').removeClass("liked")
-            $j('.btn-like').html(`<i class="far fa-heart"></i>`)
-
+            $j('#btn-like').removeClass("liked");
+            $j('#btn-like').html(`<i class="far fa-heart"></i>`);
           }
          $j('#btnPostComment').prop("disabled",false);
 
@@ -55,8 +54,8 @@
   var fileViwerModal = new bootstrap.Modal(document.getElementById('fileViewer'));
   
 
-  $j('.btn-like').on('click',function(e){
-    const likeButton = document.getElementsByClassName('btn-like')[0];
+  $j('#btn-like').on('click',function(e){
+    const likeButton = document.getElementById('btn-like');
     let noOfLikes = parseInt($j('#noOfLikes').text());
 
     if(likeButton.classList.contains('liked')){
@@ -76,7 +75,7 @@
 
     likeButton.classList.toggle('liked'); // Toggle the color of the heart button
     $j.ajax({
-      url:`/like-post?post_id=${e.currentTarget.getAttribute("data-pid")}`,
+      url:`/like-post?post_id=${PostManager.pid}`,
       method:'GET',
       success:function(data){
 
@@ -88,12 +87,21 @@
   });
 
   $j('#btnPostComment').on("click",function(e){
-    PostManager.addComment(e.target.getAttribute('data-pid'),$j('#commentInput').val())
-    .then(response =>{
-      console.log(response)
-      $j('#commentInput').val(' ')
-    })
-    .catch(error=>{
-      console.log(error)
-    })
+    let commentText = $j('#comment-input').val();
+    commentText = commentText.trim();
+    let pid = PostManager.pid.trim();
+
+    if(commentText.length == 0 || pid.length ==0){
+
+    } else {
+        PostManager.addComment(pid,commentText)
+        .then(response =>{
+          console.log(response)
+          $j('#comment-input').val(' ')
+        })
+        .catch(error=>{
+          console.log(error)
+        })
+    }
+
   });

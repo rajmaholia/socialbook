@@ -88,53 +88,6 @@ class LikeManager {
 }
 
 
-class CommentManager {
-    static commentContainer = '#comment-content';
-    static pid = '';
-
-    static load(postId){
-        PostManager.getComments(postId)
-        .then(response => {
-            // console.log(response)
-            $j(CommentManager.commentContainer).empty();
-            $j('#comment-input').val(' ')
-            $j("#commentCount").text(response.length);
-            for (const comment of response){
-                $j(CommentManager.commentContainer).append(`
-                <div class="d-flex mb-3">
-                    <div class="flex-shrink-0 rounded-circle p-0" style="width:30px;height:30px;overflow:hidden;border:2px solid purple">
-                        <img src="${comment.user_image}" alt="photo" style="object-fit:cover" class="w-100 h-100">
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <b style="font-size:14px">${comment.user}</b>
-                        <span style="font-size:15px" >${comment.comment_text}</span>
-                    </div>
-                </div>
-                `);
-            }
-            CommentManager.pid = postId
-        })
-        .catch(error => {
-           
-        });
-            
-    }
-
-    static post(){
-        let commentText = $j('#comment-input').val();
-        commentText = commentText.trim();
-        if(commentText.length!=0){
-            PostManager.addComment(CommentManager.pid,commentText)
-            .then(response => {
-                CommentManager.load(CommentManager.pid);
-                $j('#comment-input').val(' ')
-            }).catch(error => {
-
-            });
-        }
-    }
-}
-
     // Function to update the HTML with posts data
 function updatePostsUI(posts) {
     const postsContainer = document.getElementById('posts-container');
@@ -262,3 +215,7 @@ $j(document).ready(function() {
 
 
 
+
+
+
+//change url without loading 

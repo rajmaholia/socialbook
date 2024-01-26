@@ -3,25 +3,7 @@
 class PostManager {
         // Set your Django server's base URL
     static baseUrl = 'http://127.0.0.1:8000';
-
-    // Fetch all posts
-    static getAllPosts() {
-        const url = `${PostManager.baseUrl}/posts/`;
-
-        return $j.ajax({
-            url: url,
-            method: 'GET',
-            dataType: 'json'
-        })
-        .done(data => {
-            console.log('Fetched Posts:', data);
-            return data;
-        })
-        .fail(error => {
-            console.error('Error fetching posts:', error);
-            throw error;
-        });
-    }
+    static pid = '';
 
     static getAllPostOfUser(user){
 
@@ -33,22 +15,19 @@ class PostManager {
 
 
     // Like a post
-    static likePost(postId) {
-        const url = `${PostManager.baseUrl}/like-post/`;
+    static async likePost(postId) {
+        const url = `${PostManager.baseUrl}/like-post?post_id=${postId}`;
 
-        return $j.ajax({
-            url: url,
-            method: 'POST',
-            dataType: 'json'
-        })
-        .done(data => {
-            console.log('Post Liked:', data);
+        try {
+            const data = await $j.ajax({
+                url: url,
+                method: 'GET',
+                dataType: 'json'
+            });
             return data;
-        })
-        .fail(error => {
-            console.error('Error liking post:', error);
+        } catch(error){
             throw error;
-        });
+        }
     }
 
     // Add a comment to a post
@@ -104,4 +83,52 @@ class PostManager {
         }
     }
 
+}
+
+
+class CommentManager {
+    static commentContainer = '#comment-content';
+    static pid = '';
+
+    static load(postId){
+        PostManager.getComments(postId)
+        .then(response => {
+            // console.log(response)
+            $j(CommentManager.commentContainer).empty();
+            $j('#comment-input').val(' ')
+            $j("#commentCount").text(response.length);
+            for (const comment of response){
+                $j(CommentManager.commentContainer).append(`
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0 rounded-circle p-0" style="width:30px;height:30px;overflow:hidden;border:2px solid purple">
+                        <img src="${comment.user_image}" alt="photo" style="object-fit:cover" class="w-100 h-100">
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <b style="font-size:14px">${comment.user}</b>
+                        <span style="font-size:15px" >${comment.comment_text}</span>
+                    </div>
+                </div>
+                `);
+            }
+            CommentManager.pid = postId
+        })
+        .catch(error => {
+           
+        });
+            
+    }
+
+    static post(){
+        let commentText = $j('#comment-input').val();
+        commentText = commentText.trim();
+        if(commentText.length!=0){
+            PostManager.addComment(CommentManager.pid,commentText)
+            .then(response => {
+                CommentManager.load(CommentManager.pid);
+                $j('#comment-input').val(' ')
+            }).catch(error => {
+
+            });
+        }
+    }
 }

@@ -1,0 +1,167 @@
+{% extends '_base.html' %}
+{% block localcss %}
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        #reelsContainer {
+            width:100%;
+            display:flex;
+            justify-content: center;
+            border:2px solid black;
+            margin-bottom:60px
+        }
+
+        #contentArea {
+            max-width: 523px;
+            border:2px solid red;
+        }
+
+        .reel-sidebar {
+            background-color: yellow;
+        }
+
+        .reel-container {
+            width:360px;
+            border:1px solid purple;
+            display: flex;
+        }
+
+       video {
+        max-width:300px;
+        border:2px solid blue;
+        flex-shrink: 1;
+       }
+       
+       
+    </style>
+{% endblock localcss %}
+
+{% block insidebody %}
+
+<div class="" id="reelsContainer"> 
+    <div id="contentArea">
+        
+    </div>
+</div>
+{% endblock insidebody %}
+{% block scripts %}
+
+<script>
+    alert(innerWidth);
+    // scripts.js
+$j(document).ready(function() {
+// Fetch reel data from your API (replace with your API endpoint)
+$j.ajax({
+    url: '/get_reels/',
+    method: 'GET',
+    dataType: 'json',
+    success: function(data) {
+        // Iterate through the data and create reels
+        data.reels.forEach(function(reel) {
+            createReel(reel.url, {'userImage':reel.creator_img,'username':reel.creator}, reel.caption);
+        });
+    },
+    error: function(error) {
+        console.error('Error fetching reel data:', error);
+    }
+});
+
+// Function to create a dynamic video element and update content
+function createReel(videoSrc, userInfo, captionText) {
+    const reelsContainer = $j('#contentArea');
+
+    // Create reel container
+    const reelContainer = $j('<div class="reel-container"></div>');
+
+    // Create video element
+    const video = $j('<video class="reel-video" controls muted></video>');
+    video.attr('src', videoSrc);
+    video.controls = false ;
+
+    const reelSidebar = $j('<div class="reel-sidebar"></div>');
+    // Create overlay elements
+  /*  const overlay = $j('<div class="reel"></div>');
+    const userInfoElement = $j('<div class="user-info"></div>');
+    const userImage = $j('<img class="user-image" alt="User Image">');
+    userImage.attr('src', userInfo.userImage);
+    const username = $j('<span class="username"></span>').text(userInfo.username);
+    const caption = $j('<div class="caption"></div>').text(captionText);
+
+    // Append elements to the overlay
+    userInfoElement.append(userImage, username);
+    overlay.append(userInfoElement, caption);
+*/
+    // Append video and overlay to the reel container
+    reelContainer.append(video, reelSidebar);
+
+    // Append the reel container to the reels container
+    reelsContainer.append(reelContainer);
+
+    // Add event listeners for various interactions
+    addEventListeners(video);
+}
+
+// Function to add event listeners to video elements
+function addEventListeners(video) {
+    // Add event listener for tap to play/pause
+    video.on('tap', function() {
+        if (video.paused) {
+            video.play();
+        } else {
+            video.pause();
+        }
+    });
+
+    // Add event listener for double tap to like
+    video.on('dblclick', function() {
+        // Use AJAX to send a request to like-post endpoint
+        const postId = 2;
+        $j.ajax({
+            url: 'like-post',
+            method: 'GET',
+            data: { post_id: postId },
+            success: function(response) {
+                console.log('Post Liked:', response);
+            },
+            error: function(error) {
+                console.error('Error liking post:', error);
+            }
+        });
+    });
+
+    // Add event listener for swipe-up to navigate to next reel
+    video.on('swipeup', function() {
+        // Use JavaScript to navigate to the next reel
+        navigateToNextReel();
+    });
+
+    // Add event listener for full-screen view
+    video.on('expand', function() {
+        // Use JavaScript to toggle the video to full-screen mode
+        toggleFullScreen(video);
+    });
+}
+
+// Function to navigate to the next reel
+function navigateToNextReel() {
+    // Implement logic to navigate to the next reel
+}
+
+// Function to toggle full-screen mode
+function toggleFullScreen(element) {
+    if (element.requestFullscreen) {
+        element.requestFullscreen();
+    } else if (element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+    } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+    } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+    }
+}
+});
+
+</script>
+{% endblock scripts %}
+

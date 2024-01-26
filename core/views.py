@@ -18,6 +18,59 @@ from .feed import Feed
 from .user_suggestions import UserSuggestions
 from .file_validation import validate_image,validate_video,is_video,is_image
 
+
+
+def signup(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        email = request.POST['email']
+        password = request.POST['password']
+        password2 = request.POST['password2']
+
+        if password == password2:
+            if User.objects.filter(email=email).exists():
+                messages.info(request, 'Email Taken')
+            elif User.objects.filter(username=username).exists():
+                messages.info(request, 'Username Taken')
+            else:
+                user = User.objects.create_user(username=username, email=email, password=password)
+                user.save()
+
+                user_login = authenticate(username=username, password=password)
+                login(request, user_login)
+
+                user_model = User.objects.get(username=username)
+                new_profile = UserProfile.objects.create(user=user_model)
+                new_profile.save()
+
+                return redirect('settings')
+        else:
+            messages.info(request, 'Password Not Matching')
+
+    return render(request, 'signup.html')
+
+def signin(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('/')
+        else:
+            messages.info(request, 'Credentials Invalid')
+
+    return render(request, 'signin.html')
+
+@login_required(login_url='signin')
+def signout(request):
+    logout(request)
+    return redirect('signin')
+
+
+
 @login_required(login_url='signin')
 def index(request):
     user_profile = UserProfile.objects.get(user=request.user)
@@ -64,49 +117,6 @@ def upload(request):
             return JsonResponse(errors,status=400)
     return redirect('/')
 
-@login_required(login_url='signin')
-@require_GET
-def search(request):
-    if 'query' in request.GET:
-        query = request.GET['query']
-        username_objects = User.objects.filter(username__icontains=query)
-        username_profile_list = []
-
-        for user in username_objects:
-            profile = UserProfile.objects.filter(user=user).first()
-            if profile:
-                username_profile_list.append({
-                    'username': user.username,
-                    'profile_img': profile.profile_img.url,
-                })
-        return JsonResponse(username_profile_list, safe=False)
-
-    # Handle other cases or render an HTML template if needed
-    return JsonResponse({'error': 'Invalid request'}, status=400)
-
-@login_required(login_url='signin')
-def like_post(request):
-    username = request.user
-    post_id = request.GET.get('post_id')
-
-    post = UserPost.objects.get(id=post_id)
-
-    like_filter = PostLike.objects.filter(post=post, user=username).first()
-
-    if like_filter is None:
-        new_like = PostLike.objects.create(post=post, user=username)
-        new_like.save()
-        post.like_count += 1
-        post.save()
-        liked_or_unliked = "liked"
-    else:
-        like_filter.delete()
-        post.like_count -= 1
-        post.save()
-        liked_or_unliked = "unliked"
-
-
-    return JsonResponse({"status":liked_or_unliked})
 
 @login_required(login_url='signin')
 def profile(request, username):
@@ -170,57 +180,56 @@ def settings(request):
 
     return render(request, 'setting.html', {'user_profile': user_profile})
 
-def signup(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        password2 = request.POST['password2']
 
-        if password == password2:
-            if User.objects.filter(email=email).exists():
-                messages.info(request, 'Email Taken')
-            elif User.objects.filter(username=username).exists():
-                messages.info(request, 'Username Taken')
-            else:
-                user = User.objects.create_user(username=username, email=email, password=password)
-                user.save()
 
-                user_login = authenticate(username=username, password=password)
-                login(request, user_login)
-
-                user_model = User.objects.get(username=username)
-                new_profile = UserProfile.objects.create(user=user_model)
-                new_profile.save()
-
-                return redirect('settings')
-        else:
-            messages.info(request, 'Password Not Matching')
-
-    return render(request, 'signup.html')
-
-def signin(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            return redirect('/')
-        else:
-            messages.info(request, 'Credentials Invalid')
-
-    return render(request, 'signin.html')
 
 @login_required(login_url='signin')
-def signout(request):
-    logout(request)
-    return redirect('signin')
+@require_GET
+def search_api(request):
+    if 'query' in request.GET:
+        query = request.GET['query']
+        username_objects = User.objects.filter(username__icontains=query)
+        username_profile_list = []
+
+        for user in username_objects:
+            profile = UserProfile.objects.filter(user=user).first()
+            if profile:
+                username_profile_list.append({
+                    'username': user.username,
+                    'profile_img': profile.profile_img.url,
+                })
+        return JsonResponse(username_profile_list, safe=False)
+
+    # Handle other cases or render an HTML template if needed
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required(login_url='signin')
-def post_data(request,id):
+def like_post_api(request):
+    username = request.user
+    post_id = request.GET.get('post_id')
+
+    post = UserPost.objects.get(id=post_id)
+
+    like_filter = PostLike.objects.filter(post=post, user=username).first()
+
+    if like_filter is None:
+        new_like = PostLike.objects.create(post=post, user=username)
+        new_like.save()
+        post.like_count += 1
+        post.save()
+        liked_or_unliked = "liked"
+    else:
+        like_filter.delete()
+        post.like_count -= 1
+        post.save()
+        liked_or_unliked = "unliked"
+
+
+    return JsonResponse({"status":liked_or_unliked})
+
+
+@login_required(login_url='signin')
+def post_data_api(request,id):
     post =  UserPost.objects.get(id=id)
     
     if  PostLike.objects.filter(post=post,user=request.user).first() is not None:
@@ -232,7 +241,7 @@ def post_data(request,id):
     return JsonResponse(data)
 
 @login_required(login_url='signin')
-def get_posts(request):
+def get_posts_api(request):
     #define number of posts per page 
     posts_per_page = 10
 
@@ -281,17 +290,22 @@ def get_posts(request):
 
 @csrf_exempt
 @login_required(login_url='signin')
-def comment(request):
+def comment_api(request):
     if request.method=='GET':
         pid = request.GET.get('pid')
+       
         comments = UserPost.objects.get(id=pid).comments.all()
         comments_serializable = [{'user':comment.user.username,'user_image':comment.user.userprofile.profile_img.url,"comment_text":comment.comment_text,"post":comment.post.id} for comment in comments]
         return JsonResponse(comments_serializable,safe=False)
 
     elif request.method=="POST":
         user = request.user 
+        pid = request.POST.get('pid')
+        print(f'pid : {pid}')
+        if not pid:
+            return JsonResponse({'message':"pid is empty"},status=400)
         try:
-            post = UserPost.objects.get(id=request.POST.get('pid'))
+            post = UserPost.objects.get(id=pid)
         except UserPost.DoesNotExist:
             return JsonResponse({"message":"Post Doesn't Exists"},status=404)
         comment_text = request.POST.get('comment_text')
@@ -302,4 +316,71 @@ def comment(request):
         return JsonResponse({"message":"Comment can't be empty"},status=400)
        
     return JsonResponse({"message":"error"},status=400)
-            
+
+
+def reels_api(request):
+    all_posts = UserPost.objects.all()
+    reels = [reel for reel in all_posts if is_video(reel.file.url)]
+    return render(request,'reels.html',{'reels':reels})
+
+
+def get_reels_api(request):
+
+    #define reels per request 
+    reels_per_request = 4 
+
+    # Lists all reels
+    all_posts = UserPost.objects.all() 
+    all_reels = [reel for reel in all_posts if is_video(reel.file.url)]
+
+    print(all_reels)
+    #bundle of reels 
+    bundle_number = int(request.GET.get('bn',1))
+
+    #define paginator 
+    paginator = Paginator(all_reels,reels_per_request)
+
+
+      # Ensure the requested page number is within a valid range
+    try:
+        if bundle_number < 1 or bundle_number > paginator.num_pages:
+            raise EmptyPage
+    except ValueError:
+        raise EmptyPage
+    
+    except EmptyPage:
+        return JsonResponse({'reels': []})
+        
+    
+    try:
+        # Get the current page's posts
+        current_page_reels = paginator.page(bundle_number)
+    except EmptyPage:
+        # If the requested page is out of range, return an empty list
+        return JsonResponse({'reels': []})
+    
+
+    serialized_reels = []
+    for reel in current_page_reels:
+        is_video_file = is_video(reel.file.url)
+        liked_by_me = PostLike.objects.filter(post=reel, user=request.user).exists()
+
+        serialized_reels.append({
+            'id': reel.id,
+            'caption': reel.caption,
+            'url': reel.file.url,
+            'creator': reel.user.username,
+            'creator_img':reel.user.userprofile.profile_img.url,
+            'no_of_likes': reel.like_count,
+            'liked_by_me': liked_by_me,
+            'is_video': is_video_file
+        })
+
+    # Return the serialized reels along with pagination information
+    return JsonResponse({
+        'reels': serialized_reels,
+        'has_next': current_page_reels.has_next()
+    })
+
+def reels_view(request):
+    return render(request,'reels.html')
