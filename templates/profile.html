@@ -11,7 +11,9 @@
 	<div class="container-fluid">
 		<a href="/" class="navbar-brand"><i class="fas fa-arrow-left"></i></a>
 		<div style="margin-right:auto">{{user_object.username}}</div>
+		{% if user_object.username == user.username %}
 		<a href="{% url 'signout' %}" style="font-size: 12px;" class="btn btn-outline-primary py-1">Logout</a>
+		{% endif %}
 	</div>
 </nav>
 

@@ -34,6 +34,12 @@ button:focus {
     outline: none;
 }
 
+#contentArea {
+    max-width:400px !important;
+}
+#contentArea  video{
+    max-width: 360px;
+}
 /* Add the following CSS to your existing styles or create a new stylesheet */
 
   .modal-dialog-scrollable {

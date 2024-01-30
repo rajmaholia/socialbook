@@ -13,3 +13,13 @@ class UserSuggestions:
             .order_by('?')[:count]
         )
         return suggestions
+    
+    @staticmethod
+    def get_sharepost_usersuggestions(user):
+        suggestions = (
+            User.objects.filter(
+                id__in=FollowRelation.objects
+           .exclude(following=user,follower=user)
+           .filter(follower=user).values('following'))
+        )
+        return suggestions

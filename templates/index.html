@@ -31,7 +31,6 @@
             <input type="text" name="username" id="searchUsername" class="form-control form-control-sm" placeholder="Search">
             <i class="fas fa-search" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);"></i>
             <ul id="searchResults" class="list-group position-absolute mt-1" style="width: 100%; display: none;"></ul>
- 
         </li>
         
         <!-- Bell Icon with Small Circular Badge -->
@@ -46,17 +45,15 @@
     </ul>
 </nav>
 
-
-
 <!-- Main Content -->
 <div class="container mt-1" style="margin-bottom:65px">
     
     <!-- Stories Section -->
-    <div class="d-flex justify-content-start align-items-center mt-1 sb-stories">
+    <section class="d-flex justify-content-start align-items-center mt-1 sb-stories">
         <!-- Circular profile image for each story -->
         <div class="mr-2">
             <div class="rounded-circle my-story bg-primary text-center text-white mr-2" style="width: 60px; height: 60px; overflow: hidden;">
-              <img src="{{ user.userprofile.profile_img.url}}" alt="Story 1" class="img-fluid rounded-circle" style="object-fit: cover; width: 100%; height: 100%;">            
+              <img src="{{user.userprofile.profile_img.url}}" alt="Story 1" class="img-fluid rounded-circle" style="object-fit: cover; width: 100%; height: 100%;">            
             </div>
             <span>Your story</span>
         </div>
@@ -67,47 +64,23 @@
             <span>username</span>
         </div>
         <!-- Add more circular profiles for additional stories as needed -->
-
-    </div>
+    </section>
 
 
     <!-- User Feed Section -->
-    <section class="feed">
-      
+    <section class="feed mx-auto" id="contentArea">
+
     </section>
+
+    <!-- load more icon -->
     <div class="text-center"><button class="" id="loadMoreButton"><i class="fas fa-rotate"></i></button></div>
 
 </div>
 
 
-<!-- Comment Drawer Modal -->
-<div class="modal fade" id="commentDrawer" tabindex="-1" role="dialog" aria-labelledby="commentDrawerLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="commentDrawerLabel">Comments <span id="commentCount" style="font-size:14px">span></h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body mb-0">
-          <!-- Comments go here -->
-          <div id="comment-content">
-            
-          </div>
-        </div>
-        <div class="modal-footer input-group pt-0 mt-0">
-          <input type="text" id="comment-input" class="form-control" placeholder="Add a comment...">
-          <button type="button" class="btn btn-primary px-3" style="padding:2em auto; margin-top:6px" onclick="CommentManager.post()"><i class="fas fa-paper-plane"></i></button>
-        </div>
-      </div>
-    </div>
-</div>
-<!-- comment drawer ends here -->
-
 {% endblock insidebody %}
 
 
 {% block scripts %}
-  <script src="{% static 'js/index.js' %}"></script>
+  <script src="{% static 'js/index.js' %}?v=1"></script>
 {% endblock scripts %}

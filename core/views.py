@@ -7,10 +7,13 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.core.paginator import Paginator,EmptyPage
+from django.core.serializers.json import DjangoJSONEncoder
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from PIL import Image  # To check image dimensions
+
+import json 
 
 from .models import UserProfile, UserPost, PostLike, FollowRelation,Comment,Reply
 from itertools import chain 
@@ -80,7 +83,7 @@ def index(request):
     # User suggestions using UserSuggestions class
     suggestions = UserSuggestions.get_suggestions(request.user)
 
-    return render(request, 'index.html', {'user_profile': user_profile, 'posts': feed_list, 'suggestions_username_profile_list': suggestions})
+    return render(request, 'index.html', {'user_profile': user_profile, 'suggestions_username_profile_list': suggestions})
 
 
 @csrf_exempt
@@ -225,11 +228,13 @@ def like_post_api(request):
         liked_or_unliked = "unliked"
 
 
-    return JsonResponse({"status":liked_or_unliked})
+    return JsonResponse({"status":liked_or_unliked,'no_of_likes':post.like_count})
 
 
 @login_required(login_url='signin')
 def post_data_api(request,id):
+    """ Return data of individual post."""
+
     post =  UserPost.objects.get(id=id)
     
     if  PostLike.objects.filter(post=post,user=request.user).first() is not None:
@@ -242,6 +247,8 @@ def post_data_api(request,id):
 
 @login_required(login_url='signin')
 def get_posts_api(request):
+    """Returns feed posts personalized for the user . """
+
     #define number of posts per page 
     posts_per_page = 10
 
@@ -280,7 +287,7 @@ def get_posts_api(request):
         liked_by_me = PostLike.objects.filter(post=post, user=request.user).exists()
 
     
-        serialized_posts.append({'id': post.id, 'caption': post.caption,'url':post.file.url,'creator':post.user.username,'no_of_likes':post.like_count,'liked_by_me':liked_by_me,'is_video':is_video_file})
+        serialized_posts.append({'id': post.id, 'caption': post.caption,'url':post.file.url,'creator':post.user.username,'creator_img':post.user.userprofile.profile_img.url,'no_of_likes':post.like_count,'liked_by_me':liked_by_me,'is_video':is_video_file})
       # Return the serialized posts along with pagination information
     return JsonResponse({
         'posts': serialized_posts,
@@ -301,7 +308,6 @@ def comment_api(request):
     elif request.method=="POST":
         user = request.user 
         pid = request.POST.get('pid')
-        print(f'pid : {pid}')
         if not pid:
             return JsonResponse({'message':"pid is empty"},status=400)
         try:
@@ -311,7 +317,8 @@ def comment_api(request):
         comment_text = request.POST.get('comment_text')
         if(len(comment_text.strip())>0):
             Comment.objects.create(user=user,post=post,comment_text=comment_text)
-            return JsonResponse({'message':"success"})
+            no_of_comments = UserPost.objects.get(id=pid).comments.count()
+            return JsonResponse({'message':"success",'no_of_comments':no_of_comments})
             
         return JsonResponse({"message":"Comment can't be empty"},status=400)
        
@@ -364,6 +371,7 @@ def get_reels_api(request):
     for reel in current_page_reels:
         is_video_file = is_video(reel.file.url)
         liked_by_me = PostLike.objects.filter(post=reel, user=request.user).exists()
+        no_of_comments = reel.comments.count()
 
         serialized_reels.append({
             'id': reel.id,
@@ -373,7 +381,8 @@ def get_reels_api(request):
             'creator_img':reel.user.userprofile.profile_img.url,
             'no_of_likes': reel.like_count,
             'liked_by_me': liked_by_me,
-            'is_video': is_video_file
+            'is_video': is_video_file,
+            'no_of_comments':no_of_comments
         })
 
     # Return the serialized reels along with pagination information
@@ -382,5 +391,32 @@ def get_reels_api(request):
         'has_next': current_page_reels.has_next()
     })
 
+def suggested_user_for_post_api(request):
+    suggestions = UserSuggestions.get_sharepost_usersuggestions(request.user)
+    suggestion_dict = [{'username':user.username,'profile_img':user.userprofile.profile_img.url} for user in suggestions];
+    return JsonResponse({'users':suggestion_dict})
+
 def reels_view(request):
-    return render(request,'reels.html')
+    context = {
+        'user_profile':request.user.userprofile
+    }
+    return render(request,'reels.html',context)
+
+
+def reel_view(request, id):
+    reel = UserPost.objects.get(id=id)
+    liked_by_me = PostLike.objects.filter(post=reel, user=request.user).exists()
+    reel_data = {
+        'id': str(reel.id),
+        'caption': reel.caption,
+        'url': reel.file.url,
+        'creator': reel.user.username,
+        'creator_img': reel.user.userprofile.profile_img.url,
+        'no_of_likes': reel.like_count,
+        'liked_by_me': liked_by_me
+    }
+    context = {
+        'user_profile': request.user.userprofile,
+        'reel': json.dumps(reel_data, cls=DjangoJSONEncoder)
+    }
+    return render(request, 'reel.html', context)

@@ -1,6 +1,4 @@
-
 $j(document).ready(function () {
-
     // Handle input in the search bar
     $j('#searchUsername').on('input', function () {
         var query = $j(this).val();
@@ -87,62 +85,6 @@ class LikeManager {
     }
 }
 
-
-    // Function to update the HTML with posts data
-function updatePostsUI(posts) {
-    const postsContainer = document.getElementById('posts-container');
-
-    // ... (existing code)
-
-    // Loop through posts data and update HTML
-    posts.forEach(post => {
-        const postHtml = `
-            <div class="card mt-3">
-                <div class="card-body">
-                    <img src="${post.image_url}" alt="Post Image" class="img-fluid">
-                    <div class="d-flex">
-                        <!-- Like Button -->
-                        <button id="like-btn-${post.id}" class="p-1 border-0 ${post.is_liked ? 'text-danger' : ''}" onclick="LikeManager.handleLike(${post.id})">
-                            <i class="far fa-heart"></i>${post.like_count}
-                        </button>
-
-                        <!-- Comment Button -->
-                        <button class="p-1 border-0" onclick="handleComment(${post.id})">
-                            <i class="fas fa-comment"></i> Comment
-                        </button>
-                    </div>
-                    <p class="mt-3">${post.caption}</p>
-                </div>
-            </div>
-        `;
-
-        // Append the post HTML to the container
-        postsContainer.innerHTML += postHtml;
-    });
-}
-
-
-// Add the following JavaScript to your existing script or create a new one
-function showComment(){
-    toggleCommentDrawer();
-}
-
-function toggleCommentDrawer() {
-    const commentDrawer = document.getElementById('comment-drawer');
-    // Toggle the transformation on click
-    commentDrawer.style.transform = commentDrawer.style.transform === 'translateY(0)' ? 'translateY(100%)' : 'translateY(0)';
-    alert(commentDrawer)
-
-}
-
-function handleAddComment() {
-    // Your logic to handle adding a comment
-    // You can make an AJAX request to your Django backend to save the comment
-    // Update the comment content in the comment drawer
-}
-
-// Example: Call toggleCommentDrawer when the message icon is clicked
-
 $j(document).ready(function() {
     let page = 1 ;
 
@@ -170,9 +112,17 @@ $j(document).ready(function() {
                         let liketext = (post.no_of_likes==1)?"like":"likes";
                         $j('.feed').append(`
                         <div class="card mt-3">
-                            <div class="card-body">
-                                ${mediaTag}                            
-                                <div class="d-flex pb-0 mb-0">
+                            <a class="card-header d-flex py-0 my-0 align-items-center text-decoration-none" href="/profile/${post.creator}"> 
+                                <figure class="rounded-circle border-1 my-auto" style="width:25px;height:25px;overflow:hidden">
+                                    <img src="${post.creator_img}" alt="profile_img" class="w-100 h-100" style="object-fit:fill">
+                                </figure>
+                                <div class=" p-0 m-0 ">${post.creator}</div>
+                            </a>
+                            <div class="card-body p-0">
+                                ${mediaTag} 
+                            </div> 
+                            <div class="card-footer">                          
+                                <div class="d-flex p-0 m-0">
                                     <button id="like-btn-${post.id}" class="p-1 border-0 ${liked}" onclick="LikeManager.likeClicked('${post.id}')">
                                         ${likeBtn}
                                     </button>
@@ -208,6 +158,7 @@ $j(document).ready(function() {
     $j('#loadMoreButton').on('click', function() {
         loadPosts();
     });
+
 
 
 });

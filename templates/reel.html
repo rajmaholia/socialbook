@@ -1,5 +1,6 @@
 {% extends '_base.html' %}
 
+
 {% block localcss %}
     <style>
         * {
@@ -16,7 +17,8 @@
         #contentArea {
             max-width: 523px;
             width: 100%;
-            padding-top: 25px;
+            padding-top: 20px;
+
         }
 
         .reel-container {
@@ -62,7 +64,6 @@
             left:0;
             display: flex;
             align-items: center;
-            cursor: pointer;
         }
 
         video {
@@ -79,6 +80,7 @@
             flex-direction: column;
             justify-content: space-around;
             padding: 10px;
+            background-color:aliceblue
         }
 
         .reel-sidebar ul {
@@ -133,30 +135,26 @@
             top: 0;
             right: 0;
             background-color: rgba(0, 0, 0, 0);
-        }
-
-       
+        }      
     }
     </style>
 {% endblock localcss %}
 
-
 {% block insidebody %}
+<div class="container-fluid  px-0">
+    <nav class="nav border py-2" style="border: 2px solid dark;">
+        <a href="/" class="text-decoration-none text-dark"><i class="fas fa-arrow-left"></i></a>
+        <div class="text-center  mx-auto">post</div>
+    </nav>
 
-<div class="" id="reelsContainer"> 
     <div id="contentArea">
-        
+
     </div>
-    
 </div>
 {% endblock insidebody %}
 {% block scripts %}
-
-<script>
-    // scripts.js
-$j(document).ready(function() {
-    ReelPlayer.loadMoreReels();
-});
-</script>
+    <script>
+        const reelObj = {{reel|safe}};
+        ReelPlayer.createReel(reelObj);
+    </script>
 {% endblock scripts %}
-
