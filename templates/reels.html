@@ -29,6 +29,7 @@
             overflow: hidden;
             justify-content: center;
             margin-bottom: 10px;
+            min-height:492px;
         }
 
         .mute-unmute-button {
@@ -67,6 +68,7 @@
 
         video {
             width: 100%;
+            max-height:100%
         }
 
         .reel-sidebar {
@@ -103,39 +105,39 @@
         color: BLACK;
     }
    
-    @media (min-width:300px){
-        .reel-container {
-            min-height:492px;
-        }
-    }
+   
 
-    @media (max-width:320px){
+    @media (max-width:340px){
         .reel-sidebar button  svg{
             color: rgba(244, 247, 248, 0.986);
         }
-    }
-
-    @media (max-width: 300px) {
-        /* #reelsContainer {
-            flex-direction: column;
-            align-items: center;
-        } */
-
         .reel-container {
+            width:100%;
             position: relative;
-            margin-bottom: 20px;
-
+            margin-bottom: 2px;
+            min-height: none;
         }
-
 
         .reel-sidebar {
             position: absolute;
             top: 0;
             right: 0;
             background-color: rgba(0, 0, 0, 0);
-        }
+            color: white ;
 
-       
+        }
+        
+        .reel-container .reelFigure {
+            padding:0;
+
+        }
+        
+
+        .reelFigure video {
+            max-width: none;
+            margin:0;
+            padding:0;
+        }
     }
     </style>
 {% endblock localcss %}

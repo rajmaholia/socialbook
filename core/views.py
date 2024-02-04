@@ -20,7 +20,7 @@ from itertools import chain
 from .feed import Feed
 from .user_suggestions import UserSuggestions
 from .file_validation import validate_image,validate_video,is_video,is_image
-
+import random 
 
 
 def signup(request):
@@ -40,6 +40,7 @@ def signup(request):
                 user.save()
 
                 user_login = authenticate(username=username, password=password)
+            
                 login(request, user_login)
 
                 user_model = User.objects.get(username=username)
@@ -83,7 +84,7 @@ def index(request):
     # User suggestions using UserSuggestions class
     suggestions = UserSuggestions.get_suggestions(request.user)
 
-    return render(request, 'index.html', {'user_profile': user_profile, 'suggestions_username_profile_list': suggestions})
+    return render(request, 'index.html', {'user_profile': user_profile, 'suggestions_username_profile_list': suggestions,'rand':random.randrange(0,888)})
 
 
 @csrf_exempt
@@ -150,6 +151,7 @@ def profile(request, username):
         'user_followers': user_followers,
         'user_following': user_following,
     }
+    context['rand'] = random.randrange(1,10000)
     return render(request, 'profile.html', context)
 
 @login_required(login_url='signin')
@@ -158,7 +160,7 @@ def follow(request):
         follower = request.user
         username = request.POST['user']
         user = User.objects.get(username=username)
-        if FollowRelation.objects.filter(follower=follower, following=user).first():
+        if FollowRelation.objects.filter(follower=follower, following=user).exists():
             delete_follower = FollowRelation.objects.get(follower=follower, following=user)
             delete_follower.delete()
         else:
@@ -210,25 +212,30 @@ def search_api(request):
 def like_post_api(request):
     username = request.user
     post_id = request.GET.get('post_id')
+    
+    try:
+        post = UserPost.objects.get(id=post_id)
 
-    post = UserPost.objects.get(id=post_id)
+        like_filter = PostLike.objects.filter(post=post, user=username).first()
 
-    like_filter = PostLike.objects.filter(post=post, user=username).first()
+        if like_filter is None:
+            new_like = PostLike.objects.create(post=post, user=username)
+            new_like.save()
+            post.like_count += 1
+            post.save()
+            liked = True
+        else:
+            like_filter.delete()
+            post.like_count -= 1
+            post.save()
+            liked = False
+    
+    except:
+        return JsonResponse({"message":"error in post ID"},status=400)
 
-    if like_filter is None:
-        new_like = PostLike.objects.create(post=post, user=username)
-        new_like.save()
-        post.like_count += 1
-        post.save()
-        liked_or_unliked = "liked"
-    else:
-        like_filter.delete()
-        post.like_count -= 1
-        post.save()
-        liked_or_unliked = "unliked"
 
 
-    return JsonResponse({"status":liked_or_unliked,'no_of_likes':post.like_count})
+    return JsonResponse({"liked":liked,'no_of_likes':post.like_count})
 
 
 @login_required(login_url='signin')
@@ -241,7 +248,8 @@ def post_data_api(request,id):
         liked_by_me = True
     else :
         liked_by_me= False
-    data = {'id':post.id,'caption':post.caption,'file':post.file.url,'created_at':post.created_at,'created_by':post.user.username,'like_count':post.like_count,'liked_by_me':liked_by_me}
+    no_of_comments = post.comments.count()
+    data = {'id':post.id,'caption':post.caption,'file':post.file.url,'created_at':post.created_at,'created_by':post.user.username,'like_count':post.like_count,'liked_by_me':liked_by_me,'no_of_comments':no_of_comments}
 
     return JsonResponse(data)
 
@@ -406,6 +414,7 @@ def reels_view(request):
 def reel_view(request, id):
     reel = UserPost.objects.get(id=id)
     liked_by_me = PostLike.objects.filter(post=reel, user=request.user).exists()
+    no_of_comments = reel.comments.count()
     reel_data = {
         'id': str(reel.id),
         'caption': reel.caption,
@@ -413,10 +422,36 @@ def reel_view(request, id):
         'creator': reel.user.username,
         'creator_img': reel.user.userprofile.profile_img.url,
         'no_of_likes': reel.like_count,
-        'liked_by_me': liked_by_me
+        'liked_by_me': liked_by_me,
+        'no_of_comments':no_of_comments
     }
     context = {
         'user_profile': request.user.userprofile,
         'reel': json.dumps(reel_data, cls=DjangoJSONEncoder)
     }
     return render(request, 'reel.html', context)
+
+
+def post_view(request, id):
+    post = UserPost.objects.get(id=id)
+    liked_by_me = PostLike.objects.filter(post=post, user=request.user).exists()
+    no_of_comments = post.comments.count()
+    media_type = is_video(post.file.url)
+
+    post_data = {
+        'id': str(post.id),
+        'caption': post.caption,
+        'url': post.file.url,
+        'creator': post.user.username,
+        'creator_img': post.user.userprofile.profile_img.url,
+        'no_of_likes': post.like_count,
+        'liked_by_me': liked_by_me,
+        'no_of_comments':no_of_comments,
+        'is_video':media_type
+    }
+    context = {
+        'user_profile': request.user.userprofile,
+        'post': json.dumps(post_data, cls=DjangoJSONEncoder),
+        'rand':random.randrange(0,9999)
+    }
+    return render(request, 'post.html', context)

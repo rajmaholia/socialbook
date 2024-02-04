@@ -8,6 +8,20 @@
     font-family: 'Pacifico';
 }
 
+.sidebar {
+    width:80px;
+    position:fixed;
+    top:0;
+    left:0;
+    height:100vh;
+    font-size: 20px;
+    z-index:9;
+}
+
+.sidebar a {
+    color:black
+
+}
 .sb-stories span {
     font-size: 0.7em;
 }
@@ -36,12 +50,111 @@ button:focus {
 
 #contentArea {
     max-width:400px !important;
+    margin:0 auto;
 }
 #contentArea  video{
     max-width: 360px;
 }
 /* Add the following CSS to your existing styles or create a new stylesheet */
 
-  .modal-dialog-scrollable {
-    height:99vh !important;
+  #commentDrawer , #shareDrawer{
+    height:60vh !important;
+    margin:0 auto;
+    margin-top:35vh;
   }
+
+  /** profile.html styles */
+  .tabMainContent .profile-post {
+    height:calc(100vw / 3);
+    max-height:340px
+  }
+
+  #fileViewer .modal-dialog {
+    padding:0;
+  }
+  #fileViewer .modal-content {
+    width:100%
+  }
+   
+  #fileViewer .card-body {
+    max-height: 400px;
+    overflow-y: scroll;
+}
+
+  #fileViewer .file-figure {
+    max-height: 450px;
+    max-width:250px;
+    display: flex;
+    align-items: center;
+    width:100%;
+    overflow: hidden;
+  }
+  
+
+  #fileViewer .file-figure video {
+    width:100%;
+  }
+  #fileViewer .modal-header {
+     justify-content: start;
+}
+  /* EBDS */
+
+  @media screen and (min-width:770px) {
+    .sb-stories {
+        margin-left:80px
+    }
+
+    .area-fill-except-sidebar {
+        width:calc(100% - 90px) !important;
+        margin-left: auto;
+    }
+
+    #fileViewer .close {
+      display:none
+    }
+  }
+
+  @media screen and (min-width:1200px) {
+    .sidebar {
+        width:250px;
+    }
+    .sb-stories {
+        margin-left:260px
+    }
+
+    .area-fill-except-sidebar {
+        width:calc(100% - 260px) !important;
+        margin-left: auto;
+    }
+
+  }
+
+  @media screen and (max-width:380px){
+    .topnav {
+        display:flex;
+        justify-content: space-between !important;
+    }
+
+    .topNav  *{
+        margin-left:0;
+        margin-right: 0;
+    }
+    .topnav .navbar-brand {
+        padding-right:0;
+        margin-right:0
+    }
+
+    .topnav ul {
+        margin-left:0;
+    }
+  }
+
+  @media screen and (max-width:350px){
+    .topNav {
+        justify-content: center;
+    }
+    #navBarBrand {
+            display:none !important;
+    }
+  }
+

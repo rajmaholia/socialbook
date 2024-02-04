@@ -159,7 +159,11 @@
 {% endblock insidebody %}
 {% block scripts %}
     <script>
-        const reelObj = {{reel|safe}};
-        ReelPlayer.createReel(reelObj);
+        const postObj  = {{post|safe}};
+        if(postObj.is_video){ 
+            ReelPlayer.createReel(postObj)
+        } else {
+            ReelPlayer.createImg(postObj);
+        }
     </script>
 {% endblock scripts %}

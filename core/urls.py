@@ -12,6 +12,7 @@ urlpatterns = [
     path('signout/', views.signout, name='signout'),
     path('reels/',views.reels_view,name='reels_view'),
     path('reel/<str:id>',views.reel_view , name='reel_view'),
+    path('p/<str:id>',views.post_view),
 
     path('search/', views.search_api, name='search'),
     path('get_users_suggestions_for_post/',views.suggested_user_for_post_api),

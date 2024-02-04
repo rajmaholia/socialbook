@@ -9,6 +9,12 @@
             padding-top: 56px; /* Adjusted for the fixed navbar height */
         }
 
+        .btn-mute-unmute {
+            position:absolute;
+            top:0;
+            right:0;
+        }
+
         @media (max-width: 576px) {
             body {
                 padding-top: 56px; /* Adjusted for the fixed navbar height on small screens */
@@ -20,21 +26,21 @@
 
 {% block insidebody %}
 <!-- Navbar -->
-<nav class="navbar navbar-light bg-light fixed-top">
-    <a class="navbar-brand" href="#">SocialBook</a>
+<nav class="navbar navbar-light bg-light fixed-top topNav" style="z-index:8">
+    <a class="navbar-brand d-md-none" href="#" id="navBarBrand">SocialBook</a>
 
     <!-- Navbar Items -->
     <ul class="navbar-nav ml-auto d-inline-block">
          <!-- Message Icon with Small Circular Badge -->
-         <li class="nav-item d-inline-block mx-2 position-relative">
+         <li class="nav-item d-inline-block mx-1 position-relative" id="nav-li-search">
             <label for="searchUsername" class="sr-only">Search</label>
-            <input type="text" name="username" id="searchUsername" class="form-control form-control-sm" placeholder="Search">
+            <input type="text" name="username" id="searchUsername" class="form-control form-control-sm" placeholder="Search" autocomplete="off">
             <i class="fas fa-search" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);"></i>
             <ul id="searchResults" class="list-group position-absolute mt-1" style="width: 100%; display: none;"></ul>
         </li>
-        
+
         <!-- Bell Icon with Small Circular Badge -->
-        <li class="nav-item d-inline-block mx-2 position-relative">
+        <li class="nav-item d-inline-block mx-1 position-relative">
             <a class="nav-link" href="#">
                 <i class="far fa-bell" style="color: #19191a;"></i>
                 <span class="badge badge-danger badge-pill position-absolute top-0 end-0 rounded-circle" style="font-size: 0.6em;">3</span>
@@ -68,7 +74,7 @@
 
 
     <!-- User Feed Section -->
-    <section class="feed mx-auto" id="contentArea">
+    <section class="feed" id="contentArea">
 
     </section>
 
@@ -82,5 +88,5 @@
 
 
 {% block scripts %}
-  <script src="{% static 'js/index.js' %}?v=1"></script>
+  <script src="{% static 'js/index.js' %}?v={{rand}}"></script>
 {% endblock scripts %}

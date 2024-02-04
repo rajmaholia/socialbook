@@ -85,6 +85,70 @@ class ReelPlayer {
         ReelPlayer.addEventListeners(reelObj,video,muteUnmuteButton,reelSidebar,userInfoClick);
     }
 
+    
+    static createImg(imgObj,container=null) {
+        if(container == null){
+            container = $j('#contentArea');
+        }
+
+
+        
+        // Create video element
+
+        
+        let btnheart = `<button class="btn-post-like"><i class="far fa-heart"></i></button>`;
+        if(imgObj.liked_by_me){
+            btnheart = `<button class="btn-post-like liked"><i class="fas fa-heart" style="color:red"></i></button>`;
+        }
+        let like_count = PostManager.formattedNumber(imgObj.no_of_likes);
+        let comment_count = PostManager.formattedNumber(imgObj.no_of_comments);
+
+        const postHtml  = `
+            <div class="post-container card" data-post-id="${imgObj.id}">
+                <a href="/profile/${imgObj.creator}" class="card-header d-flex">
+                    <figure class="rounded-circle  mr-2" style="width:30px;height:30px;overflow:hidden">
+                        <img class="user-image" src="${imgObj.creator_img}" alt="User Image" style='object-fit:cover;width:100%;height:100%'>
+                    </figure>
+                    <div style="font-size:14px;padding-bottom:0" class="">${imgObj.creator}</div>
+                </a>
+                <div class="card-body">
+                    <img  alt="loading ..." src="${imgObj.url}" class="w-100" />
+                </div>
+                <div class="card-footer post-details ps-1 "> 
+                        ${imgObj.caption}
+                        <div class="post-actions p-0 m-0">
+                            <ul class="d-flex nav p-0 m-0">
+                                <li class="nav-item">${btnheart} <span class="like_count d-block text-center">${like_count}</span></li>
+                                <li class="nav-item"><button class="btn-post-comment"><i class="far fa-comment"></i> </button><span class="comment_count d-block text-center">${comment_count}</span></li>
+                            </ul>
+                        </div>
+                </div>  
+            </div>
+        `;
+        const post = $j(postHtml);
+ 
+        // Append the reel container to the reels container
+        container.append(post);
+
+        //like event handling
+        let likeBtn = post.find('.btn-post-like');
+        let likeCountEl = post.find('.like_count');
+        likeBtn.on('click',function(){
+            PostLikeManager.like(imgObj.id,likeBtn,likeCountEl)
+        });
+
+        //comment event handling
+        let commenBtn = post.find('.btn-post-comment');
+        commenBtn.on('click',function(){
+            let drawer = $j('#commentDrawer')[0];
+            let drawerObj = new bootstrap.Modal(drawer)
+            drawerObj.show()
+            CommentManager.load(imgObj.id)
+        })
+
+
+    }
+
     /**
      * Checks whether the current playin reel is second last .
      * 
@@ -104,7 +168,6 @@ class ReelPlayer {
      * @param {IntersectionObserverEntry} entries 
      */
     static handleIntersection(entries) {
-        console.log(entries)
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const reelContainer = $j(entry.target);
@@ -192,8 +255,6 @@ class ReelPlayer {
             });
         })
         .catch(error => {
-            console.log("can't load more reels");
-            console.log(error);
         })
     }
 
@@ -239,7 +300,7 @@ class ReelPlayer {
         let likeBtn = reelSidebar.find('.btn-reel-like');
         likeBtn.on('click',function(){
            let likeCountEl = reelSidebar.find('.like_count');
-           ReelLikeManager.like(reelObj.id,likeBtn,likeCountEl)
+           PostLikeManager.like(reelObj.id,likeBtn,likeCountEl)
         });
 
         let commentBtn = reelSidebar.find('.btn-reel-comment');
@@ -257,20 +318,113 @@ class ReelPlayer {
             let shareModal = new bootstrap.Modal(document.getElementById('shareDrawer'));
             shareModal.show();
             ShareManager.pid = reelObj.id;
+            ShareManager.route='/reel/';
             ShareManager.load();
         });
-
-        let moreOptionsBtn = reelSidebar.find('.btn-reel-moreoptions');
-        moreOptionsBtn.on('click',function(){
-           
-        });
-    }
-
-    static createPost(){
-        
     }
 }
 
+
+class PostViewer {
+    static pid = null;
+    static liked = null ;
+
+    static loadPost(postObj) {
+      let tagFigure = $j('.file-figure');
+      tagFigure.empty();
+
+      let media;
+      // handles when file is video or image 
+      if(PostViewer.isVideoFile(postObj.file)) {
+            media = $j(`<video src="${postObj.file}" class="w-100 h-100"  autoplay></video>`);
+            PostViewer.handleEvents(tagFigure,media);
+      } else {
+            media = $j(`<img src="${postObj.file}"  class="w-100 h-100">`);
+            PostViewer.handleEvents(tagFigure);
+      }
+      tagFigure.append(media);
+
+      //set liked or unliked
+      if(PostViewer.liked) {
+        let likeBtn = $j('.btn-like');
+        PostLikeManager.updateIcon(likeBtn,true);
+      }
+
+      let likeText = $j('.like-text');
+      let likeCount = $j('.like-count');
+      PostLikeManager.updateCount(postObj.like_count,likeCount,likeText)
+    }
+
+    static loadViewer(fileViwerModal,postId){
+      // define the modal object for file viwer
+      let fileViwerModalObj = new bootstrap.Modal(fileViwerModal);
+
+      //getting post data of post with given id 
+      PostManager.getData(postId)
+        .then(response => {
+          fileViwerModalObj.show();
+          PostViewer.pid = postId;
+          PostViewer.liked = response.liked_by_me;
+          PostViewer.loadPost(response); 
+          CommentManager.load(PostViewer.pid);
+        }).catch(error=> {
+        });     
+    }
+
+    static isVideoFile(file) {
+      // Get the file extension
+      const fileNameParts = file.split('.');
+      const fileExtension = fileNameParts[fileNameParts.length - 1].toLowerCase();
+
+      // List of video file extensions
+      const videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'flv', 'wmv'];
+
+      // Check if the file extension is in the list of video extensions
+      return videoExtensions.includes(fileExtension);
+    }
+
+    static handleEvents(figure,video=null){
+        if(video != null){
+            video.on('click',function(){
+                if(video[0].paused){
+                video[0].play();
+                } else {
+                video[0].pause();
+                }
+            });
+        }
+
+      const $btnPostComment = $j('#btnPostComment');
+      CommentManager.pid = PostViewer.pid;
+
+    
+      $btnPostComment.off('click');
+      $btnPostComment.on('click',function(){
+        CommentManager.post();
+      });
+
+
+      //Actions
+      let fileViewer = $j('#fileViewer');
+      let btnShare = fileViewer.find('.btn-share');
+      
+      btnShare.on('click',function(){
+        ShareManager.route = '/p/';
+        ShareManager.pid = PostViewer.pid;
+        ShareManager.show(PostViewer.pid)
+      });
+    
+
+      let btnLike = fileViewer.find('.btn-like');
+      let likeCount = fileViewer.find('.like-count');
+      let likeText = fileViewer.find('.like-text');
+      btnLike.off('click');
+      btnLike.on('click',function(){
+        PostLikeManager.like(PostViewer.pid,btnLike,likeCount,likeText)
+      })
+    }
+
+}
 
 
 class PostManager {
@@ -339,7 +493,6 @@ class PostManager {
             });
             return data;
         } catch (error) {
-            console.error(`Error fetching post with ID ${postId}:`, error);
             throw error;
         }
     }
@@ -353,8 +506,15 @@ class PostManager {
             return number;
         }
     }
-}
 
+    static handleShare(postId,route=null){
+        let shareModal = new bootstrap.Modal(document.getElementById('shareDrawer'));
+        shareModal.show();
+        ShareManager.pid = postId;
+        ShareManager.route = route;
+        ShareManager.load();
+    }
+}
 
 class CommentManager {
     static commentContainer = '#comment-content';
@@ -364,7 +524,7 @@ class CommentManager {
     static load(postId){
         PostManager.getComments(postId)
         .then(response => {
-            // console.log(response)
+
             $j(CommentManager.commentContainer).empty();
             $j('#comment-input').val(' ')
             $j("#commentCount").text(response.length);
@@ -381,6 +541,7 @@ class CommentManager {
                 </div>
                 `);
             }
+
             CommentManager.pid = postId
         })
         .catch(error => {
@@ -392,9 +553,12 @@ class CommentManager {
     static post(){
         let commentText = $j('#comment-input').val();
         commentText = commentText.trim();
+
         if(commentText.length!=0){
+            
             PostManager.addComment(CommentManager.pid,commentText)
             .then(response => {
+
                 CommentManager.load(CommentManager.pid);
                 $j('#comment-input').val(' ')
                 if(CommentManager.commentCountObj != null){
@@ -404,12 +568,13 @@ class CommentManager {
 
             });
         }
-    }
+    } 
 }
 
 class ShareManager {
     static suggestUserContainer = '#suggest-or-search-users';
     static pid = '';
+    static route = null;
 
     static async getSuggested(){
         const url = `${PostManager.baseUrl}/get_users_suggestions_for_post/`;
@@ -423,24 +588,18 @@ class ShareManager {
             );
             return data ;
         } catch(error){
-
         }
-
     }
 
     static copyLink(){
-        navigator.clipboard.writeText(`${PostManager.baseUrl}/reel/${ShareManager.pid}`)
+        navigator.clipboard.writeText(`${PostManager.baseUrl}${ShareManager.route}${ShareManager.pid}`)
         .then(function(){
         })
         .catch(function(error){
         });
     }
 
-    static searchUsers(){
-
-    }
-
-    static load(){
+    static load(route){
         const contentObj = $j(ShareManager.suggestUserContainer);
         ShareManager.getSuggested()
         .then(data => {
@@ -451,38 +610,43 @@ class ShareManager {
         })
     }
 
+    static show(postId){
+        let shareModal = new bootstrap.Modal(document.getElementById('shareDrawer'));
+        shareModal.show();
+    }
 }
 
-class ReelLikeManager {
+class PostLikeManager {
     static liked = null;
 
-    static updateIcon(likeBtn){
-        if(likeBtn[0].classList.contains('liked')){
-            likeBtn[0].innerHTML = `<i class="far fa-heart"></i>`;
-            ReelLikeManager.liked = false;
-        } else {
+    static updateIcon(likeBtn,liked){
+        if(liked){
             likeBtn[0].innerHTML = `<i class="fas fa-heart" style="color:red"></i>`;
-            ReelLikeManager.liked = true;
+        } else {
+            likeBtn[0].innerHTML = `<i class="far fa-heart" ></i>`;
         }
-        likeBtn[0].classList.toggle('liked');
     }
 
-    static updateCount(noOfLikes,countEl){
+    static updateCount(noOfLikes,countEl,likeTextEl){
         let formattedLikes = PostManager.formattedNumber(noOfLikes);
         countEl.text(formattedLikes);
+        if(likeTextEl != null) {
+            let likeText = (noOfLikes == 1)?"like":"likes";
+            likeTextEl.text(likeText);
+        }
     }
 
-    static handleLike(postId,likeCountEl) {
+    static handleLike(postId,btnObj,likeCountEl,likeTextEl) {
         fetch(`/like-post?post_id=${postId}`)
             .then(response => response.json())
             .then(data => {
-                ReelLikeManager.updateCount(data.no_of_likes,likeCountEl);
+                PostLikeManager.updateCount(data.no_of_likes,likeCountEl,likeTextEl);
+                PostLikeManager.updateIcon(btnObj,data.liked);
             })
     }
 
-    static like(postid,btnObj,likeCountEl){
-        ReelLikeManager.handleLike(postid,likeCountEl);
-        ReelLikeManager.updateIcon(btnObj);
+    static like(postid,btnObj,likeCountEl,likeTextEl=null){
+        PostLikeManager.handleLike(postid,btnObj,likeCountEl,likeTextEl);
     }
 
 }
