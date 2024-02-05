@@ -395,11 +395,9 @@ class ReelPlayer {
 
         let shareBtn = reelSidebar.find('.btn-reel-share');
         shareBtn.on('click',function(){
-            let shareModal = new bootstrap.Modal(document.getElementById('shareDrawer'));
-            shareModal.show();
             ShareManager.pid = reelObj.id;
             ShareManager.route='/reel/';
-            ShareManager.load();
+            ShareManager.show()
         });
     }
 }
@@ -490,7 +488,7 @@ class PostViewer {
       btnShare.on('click',function(){
         ShareManager.route = '/p/';
         ShareManager.pid = PostViewer.pid;
-        ShareManager.show(PostViewer.pid)
+        ShareManager.show()
       });
     
 
