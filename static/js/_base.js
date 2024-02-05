@@ -1,3 +1,83 @@
+class PostManager {
+        // Set your Django server's base URL
+    static baseUrl = 'http://127.0.0.1:8000';
+    static pid = '';
+
+    // Like a post
+    static async likePost(postId) {
+        const url = `${PostManager.baseUrl}/like-post?post_id=${postId}`;
+
+        try {
+            const data = await $j.ajax({
+                url: url,
+                method: 'GET',
+                dataType: 'json'
+            });
+            return data;
+        } catch(error){
+            throw error;
+        }
+    }
+
+    // Add a comment to a post
+    static async addComment(postId, commentText) {
+        const url = `${PostManager.baseUrl}/posts/comment`;
+
+        try {
+            const data = await $j.ajax({
+                url:url,
+                method:'POST',
+                dataType:'json',
+                data:{pid:postId,comment_text:commentText}
+            });
+            return data;
+        } catch(error){
+            throw error;
+        }
+
+    }
+
+    static async getComments(postId) {
+        const url = `${PostManager.baseUrl}/posts/comment?pid=${postId}`;
+        try {
+            const data = await $j.ajax({
+                url:url,
+                method:'GET',
+                dataType:'json',
+            });
+            return data;
+        } catch(error){
+            throw error;
+        }
+
+    }
+
+    // Fetch data for a post by ID
+    static async getData(postId) {
+        const url = `${PostManager.baseUrl}/posts/${postId}/`;
+
+        try {
+            const data = await $j.ajax({
+                url: url,
+                method: 'GET',
+                dataType: 'json'
+            });
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static formattedNumber(number) {
+        if (number >= 1000000) {
+            return (number / 1000000).toFixed(1) + 'M';
+        } else if (number >= 1000) {
+            return (number / 1000).toFixed(1) + 'k';
+        } else {
+            return number;
+        }
+    }
+}
 
 class ReelPlayer {
 
@@ -324,7 +404,6 @@ class ReelPlayer {
     }
 }
 
-
 class PostViewer {
     static pid = null;
     static liked = null ;
@@ -426,100 +505,17 @@ class PostViewer {
 
 }
 
-
-class PostManager {
-        // Set your Django server's base URL
-    static baseUrl = 'http://127.0.0.1:8000';
-    static pid = '';
-
-    // Like a post
-    static async likePost(postId) {
-        const url = `${PostManager.baseUrl}/like-post?post_id=${postId}`;
-
-        try {
-            const data = await $j.ajax({
-                url: url,
-                method: 'GET',
-                dataType: 'json'
-            });
-            return data;
-        } catch(error){
-            throw error;
-        }
-    }
-
-    // Add a comment to a post
-    static async addComment(postId, commentText) {
-        const url = `${PostManager.baseUrl}/posts/comment`;
-
-        try {
-            const data = await $j.ajax({
-                url:url,
-                method:'POST',
-                dataType:'json',
-                data:{pid:postId,comment_text:commentText}
-            });
-            return data;
-        } catch(error){
-            throw error;
-        }
-
-    }
-
-    static async getComments(postId) {
-        const url = `${PostManager.baseUrl}/posts/comment?pid=${postId}`;
-        try {
-            const data = await $j.ajax({
-                url:url,
-                method:'GET',
-                dataType:'json',
-            });
-            return data;
-        } catch(error){
-            throw error;
-        }
-
-    }
-
-    // Fetch data for a post by ID
-    static async getData(postId) {
-        const url = `${PostManager.baseUrl}/posts/${postId}/`;
-
-        try {
-            const data = await $j.ajax({
-                url: url,
-                method: 'GET',
-                dataType: 'json'
-            });
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    static formattedNumber(number) {
-        if (number >= 1000000) {
-            return (number / 1000000).toFixed(1) + 'M';
-          } else if (number >= 1000) {
-            return (number / 1000).toFixed(1) + 'k';
-          } else {
-            return number;
-        }
-    }
-
-    static handleShare(postId,route=null){
-        let shareModal = new bootstrap.Modal(document.getElementById('shareDrawer'));
-        shareModal.show();
-        ShareManager.pid = postId;
-        ShareManager.route = route;
-        ShareManager.load();
-    }
-}
-
 class CommentManager {
+    static commentDrawer = '#commentDrawer';
     static commentContainer = '#comment-content';
     static pid = '';
     static commentCountObj = null;
+
+    static show(){
+        const commentDrawer = $j(CommentManager.commentDrawer)[0];
+        const bsModalObj = new bootstrap.Modal(commentDrawer);
+        bsModalObj.show();
+    }
 
     static load(postId){
         PostManager.getComments(postId)
@@ -572,24 +568,9 @@ class CommentManager {
 }
 
 class ShareManager {
-    static suggestUserContainer = '#suggest-or-search-users';
     static pid = '';
     static route = null;
-
-    static async getSuggested(){
-        const url = `${PostManager.baseUrl}/get_users_suggestions_for_post/`;
-        try {
-           const data = await $j.ajax(
-                {
-                    method:'GET',
-                    url:url,
-                    dataType:'json'
-                }
-            );
-            return data ;
-        } catch(error){
-        }
-    }
+    static shareDrawer = '#shareDrawer';
 
     static copyLink(){
         navigator.clipboard.writeText(`${PostManager.baseUrl}${ShareManager.route}${ShareManager.pid}`)
@@ -599,19 +580,8 @@ class ShareManager {
         });
     }
 
-    static load(route){
-        const contentObj = $j(ShareManager.suggestUserContainer);
-        ShareManager.getSuggested()
-        .then(data => {
-        
-        })
-        .catch(error =>{
-        
-        })
-    }
-
-    static show(postId){
-        let shareModal = new bootstrap.Modal(document.getElementById('shareDrawer'));
+    static show(){
+        let shareModal = new bootstrap.Modal($j(ShareManager.shareDrawer)[0]);
         shareModal.show();
     }
 }
@@ -619,34 +589,34 @@ class ShareManager {
 class PostLikeManager {
     static liked = null;
 
-    static updateIcon(likeBtn,liked){
+    static updateIcon($likeBtn,liked){
         if(liked){
-            likeBtn[0].innerHTML = `<i class="fas fa-heart" style="color:red"></i>`;
+            $likeBtn[0].innerHTML = `<i class="fas fa-heart" style="color:red"></i>`;
         } else {
-            likeBtn[0].innerHTML = `<i class="far fa-heart" ></i>`;
+            $likeBtn[0].innerHTML = `<i class="far fa-heart" ></i>`;
         }
     }
 
-    static updateCount(noOfLikes,countEl,likeTextEl){
+    static updateCount(noOfLikes,$countEl,$likeTextEl){
         let formattedLikes = PostManager.formattedNumber(noOfLikes);
-        countEl.text(formattedLikes);
-        if(likeTextEl != null) {
-            let likeText = (noOfLikes == 1)?"like":"likes";
-            likeTextEl.text(likeText);
+        $countEl.text(formattedLikes);
+        if($likeTextEl != null) {
+            let $likeText = (noOfLikes == 1)?"like":"likes";
+            $likeTextEl.text($likeText);
         }
     }
 
-    static handleLike(postId,btnObj,likeCountEl,likeTextEl) {
+    static handleLike(postId,$btnObj,$likeCountEl,$likeTextEl) {
         fetch(`/like-post?post_id=${postId}`)
             .then(response => response.json())
             .then(data => {
-                PostLikeManager.updateCount(data.no_of_likes,likeCountEl,likeTextEl);
-                PostLikeManager.updateIcon(btnObj,data.liked);
+                PostLikeManager.updateCount(data.no_of_likes,$likeCountEl,$likeTextEl);
+                PostLikeManager.updateIcon($btnObj,data.liked);
             })
-    }
+    }$
 
-    static like(postid,btnObj,likeCountEl,likeTextEl=null){
-        PostLikeManager.handleLike(postid,btnObj,likeCountEl,likeTextEl);
+    static like(postId,$btnObj,$likeCountEl,$likeTextEl=null){
+        PostLikeManager.handleLike(postId,$btnObj,$likeCountEl,$likeTextEl);
     }
 
 }

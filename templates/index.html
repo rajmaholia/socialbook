@@ -2,9 +2,7 @@
 {% load static %}
 
 {% block localcss %}
- <link rel="stylesheet" href="{%static 'css/index.css'%}">
    <style>
-        /* Add your custom styles here */
         body {
             padding-top: 56px; /* Adjusted for the fixed navbar height */
         }
@@ -14,13 +12,6 @@
             top:0;
             right:0;
         }
-
-        @media (max-width: 576px) {
-            body {
-                padding-top: 56px; /* Adjusted for the fixed navbar height on small screens */
-            }
-        }
-
     </style>
 {% endblock localcss %}
 
@@ -46,8 +37,6 @@
                 <span class="badge badge-danger badge-pill position-absolute top-0 end-0 rounded-circle" style="font-size: 0.6em;">3</span>
             </a>
         </li>
-        <!-- Other Navbar Items -->
-        <!-- Add your other navbar items here -->
     </ul>
 </nav>
 
@@ -88,5 +77,5 @@
 
 
 {% block scripts %}
-  <script src="{% static 'js/index.js' %}?v={{rand}}"></script>
+  <script src="{% static 'js/index.js' %}"></script>
 {% endblock scripts %}

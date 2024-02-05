@@ -1,41 +1,3 @@
-
-class LikeManager {
-    static handleLike(postId) {
-        fetch(`/like-post?post_id=${postId}`)
-            .then(response => response.json())
-            .then(data => {
-                     
-            });
-    }
-
-    static likeClicked(postId){
-        const likeButton = document.getElementById(`like-btn-${postId}`);
-        const likeCountTag = $j(`#like-count-${postId}`);
-        let likes = parseInt(likeCountTag.text());
-        if(likeButton.classList.contains('liked')){
-            //unliked
-            // alert(222)
-            likes -= 1;
-            likeButton.innerHTML = `<i class="far fa-heart"></i>`;
-            likeCountTag.text(likes);
-        }
-        else {
-            //liked
-            likes += 1;
-            likeButton.innerHTML = `<i class="fas fa-heart" style="color:red"></i>`;
-            likeCountTag.text(likes);
-        }
-        if(likes == 1 ){
-            likeCountTag.next('span').text("like")
-        } else {
-            likeCountTag.next('span').text("likes")
-        }
-        likeButton.classList.toggle('liked');
-        LikeManager.handleLike(postId);
-                // Toggle the color of the heart button
-    }
-}
-
 class Index {
     static page = 1;
     static hasNext = true;
@@ -80,10 +42,10 @@ class Index {
 
    static createPost(post) {
         let mediaTag = ` <img src="${post.url}" alt="photo" style="object-fit:cover" class="w-100 h-100">`;
-        let muteBtn = '';
+        let muteUnmuteBtn = '';
         if(post.is_video){
             mediaTag = `<video src="${post.url}" class="w-100 h-100" style="max-height:400px"  muted></video>`;
-            muteBtn = `<button class='btn-mute-unmute border-0'></button>`;
+            muteUnmuteBtn = `<button class='btn-mute-unmute border-0'></button>`;
             
         } 
 
@@ -104,34 +66,39 @@ class Index {
                 </a>
                 <div class="card-body p-0 text-center">
                     ${mediaTag} 
-                    ${muteBtn}
+                    ${muteUnmuteBtn}
                 </div> 
                 <div class="card-footer">                          
                     <div class="d-flex p-0 m-0">
-                        <button id="like-btn-${post.id}" class="p-1 border-0 ${liked}" onclick="LikeManager.likeClicked('${post.id}')">
+                        <button id="like-btn-${post.id}" class="p-1 btn-like border-0 ${liked}">
                             ${likeIcon}
                         </button>
-                        <button id='comment-btn-${post.id}' class="p-1 border-0" data-toggle="modal" onclick="CommentManager.load('${post.id}')" data-target="#commentDrawer">
+                        <button id='comment-btn-${post.id}' class="p-1 border-0 btn-comment">
                             <i class="far fa-comment"></i>
                         </button>
                         
-                        <button id='share-btn-${post.id}' class="p-1 border-0"  onclick="PostManager.handleShare('${post.id}','/p/')">
+                        <button id='share-btn-${post.id}' class="p-1 border-0 btn-share">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                     <div class="w-100 mb-0 pb-0" >
-                            <span id="like-count-${post.id}">${post.no_of_likes}</span> <span class="liketext">${liketext}</span>                   
+                            <span id="like-count-${post.id}" class="like-count">${post.no_of_likes}</span> <span class="like-text">${liketext}</span>                   
                     </div>
                     <p class="mt-3">${post.caption}</p>  
                 </div>             
             </div>
         `);
         $j('.feed').append($postObj);
+        let $likeBtn = $postObj.find('.btn-like');
+        let $commentBtn = $postObj.find('.btn-comment');
+        let $shareBtn = $postObj.find('.btn-share');
 
-
+        let $actionsBtns = {$likeBtn:$likeBtn,$commentBtn:$commentBtn,$shareBtn:$shareBtn};
         if(post.is_video){
-            Index.attachEvents($postObj.find('video'),$postObj.find('.btn-mute-unmute'));
+            $actionsBtns.$video = $postObj.find('video');
+            $actionsBtns.$muteUnmuteBtn =  $postObj.find('.btn-mute-unmute');
         }
+        Index.attachEvents(post.id,$postObj,$actionsBtns);
         const observer = new IntersectionObserver(Index.handleIntersection,{threshold:0.6});
         observer.observe($postObj[0]);
    }
@@ -166,27 +133,50 @@ class Index {
         }
    }
 
-   static attachEvents(video,btnmuteUnmute){
-    video.on('click',function(){    
-        if(video[0].paused){
-            video[0].play()
-        } else {
-            video[0].pause()
+   static attachEvents(postId,$postObj,$actions){
+        if($actions.$video) {
+            $actions.$video.on('click',function(){    
+                if($actions.$video[0].paused){
+                    $actions.$video[0].play()
+                } else {
+                    $actions.$video[0].pause()
+                }
+            });
         }
-    });
 
-    btnmuteUnmute.on('click',function(){
-        Index.muted = !(Index.muted);
-        if(Index.muted) {
-            video.prop('muted',true);
-            btnmuteUnmute[0].innerHTML = '<i class="fas fa-volume-mute"></i>';
-        } else {
-            video.prop('muted',false);
-            btnmuteUnmute[0].innerHTML = '<i class="fas fa-volume-high"></i>';
+        if($actions.$muteUnmuteBtn) {
+            $actions.$muteUnmuteBtn.on('click',function(){
+                Index.muted = !(Index.muted);
+                if(Index.muted) {
+                    $actions.$video.prop('muted',true);
+                    $actions.$muteUnmuteBtn[0].innerHTML = '<i class="fas fa-volume-mute"></i>';
+                } else {
+                    $actions.$video.prop('muted',false);
+                    $actions.$muteUnmuteBtn[0].innerHTML = '<i class="fas fa-volume-high"></i>';
+                }
+            });
         }
-    })
-   }
-}
+
+        $actions.$likeBtn.on('click',function(){
+            let $likeCountEl = $postObj.find('.like-count');
+            let $likeTextEl = $postObj.find('.like-text');
+            PostLikeManager.like(postId,$j(this),$likeCountEl,$likeTextEl)
+        });
+
+        $actions.$shareBtn.on('click',function(){
+            ShareManager.pid = postId;
+            ShareManager.route = '/p/';
+            ShareManager.show()
+        });
+
+        $actions.$commentBtn.on('click',function(){
+            CommentManager.show()
+            CommentManager.load(postId);
+        });
+
+        
+    }
+}   
 
 
 $j(document).ready(function () {
